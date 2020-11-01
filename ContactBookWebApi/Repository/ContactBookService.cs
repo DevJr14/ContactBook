@@ -142,7 +142,6 @@ namespace ContactBookWebApi.Repository
             {
                 _context.Contacts.Remove(delContact);
             }
-            throw new KeyNotFoundException();
         }
 
     }
