@@ -84,5 +84,19 @@ namespace ContactBookWebApi.Test
             Assert.NotNull(result.Value);
             Assert.Equal(returnedContact, result.Value);
         }
+
+        [Fact]
+        public async Task GetContactById_ContactDoesNotExists_NotFound()
+        {
+            var serviceMocker = new Mock<IContactBookService>();
+            serviceMocker
+                .Setup(service => service.GetContactById(It.IsAny<int>()))
+                .ReturnsAsync((Contact)null);
+
+            var mapperMock = new Mock<IMapper>();
+
+            var controller = new ContactsController(serviceMocker.Object, mapperMock.Object);
+            var actionResult = await controller.GetContactById(30);
+        }
     }
 }
