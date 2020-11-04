@@ -588,9 +588,117 @@ namespace ContactBookWebApi.Test
             var serviceMocker = new Mock<IContactBookService>();
 
             var controller = new ContactsController(contactBookService: serviceMocker.Object, mapper: mapperMock.Object);
-            var actionResult = await controller.UpdateContact(50, contactForUpdate);
+            var actionResult = await controller.UpdateContact(2, contactForUpdate);
 
-            Assert.IsAssignableFrom<BadRequestResult>(actionResult);
+            Assert.IsAssignableFrom<BadRequestResult>(actionResult.Result);
+        }
+
+        [Fact]
+        public async Task UpdateContact_Successful_NoContentResult()
+        {
+            Contact updatedContact = new Contact()
+            {
+                ContactId = 30,
+                FirstName = "Selby",
+                Surname = "Seroka",
+                BirthDate = new DateTime(1978, 7, 23),
+                UpdatedDate = new DateTime(2020, 11, 2),
+
+                ContactDetails = new List<ContactDetail>()
+                {
+                    new ContactDetail()
+                    {
+                        ContactDetailId = 40,
+                        ContactId = 30,
+                        Address = "302 Lebea",
+                        Cell = "0782347832",
+                        Description = "Description",
+                        Email = "selby@gmail.com",
+                        Telephone = "0156728912"
+                    }
+                }
+            };
+
+            ContactReadDto contactForUpdate = new ContactReadDto()
+            {
+                ContactId = 30,
+                FirstName = "Selby",
+                Surname = "Seroka",
+                BirthDate = new DateTime(1978, 7, 23),
+                UpdatedDate = new DateTime(2020, 11, 2),
+
+                ContactDetails = new List<ContactDetailReadDto>()
+                {
+                    new ContactDetailReadDto()
+                    {
+                        ContactDetailId = 40,
+                        ContactId = 30,
+                        Address = "302 Lebea",
+                        Cell = "0782347832",
+                        Description = "Description",
+                        Email = "selby@gmail.com",
+                        Telephone = "0156728912"
+                    }
+                }
+            };
+
+            var mapperMock = new Mock<IMapper>();
+            mapperMock
+                .Setup(mapper => mapper.Map<Contact>(It.IsAny<ContactReadDto>()))
+                .Returns(updatedContact);
+
+            var serviceMocker = new Mock<IContactBookService>();
+            serviceMocker
+                .Setup(service => service.ContactExists(It.IsAny<int>()))
+                .ReturnsAsync(true);
+            serviceMocker
+                .Setup(service => service.UpdateContact(It.IsAny<Contact>()));
+            serviceMocker
+                .Setup(service => service.SaveAsync());
+
+            var controller = new ContactsController(contactBookService: serviceMocker.Object, mapper: mapperMock.Object);
+            var actionResult = await controller.UpdateContact(30, contactForUpdate);
+
+            Assert.IsAssignableFrom<NoContentResult>(actionResult.Result);
+        }
+
+        [Fact]
+        public async Task UpdateContact_ContactDoesNotExists_BadRequestResult()
+        {
+            ContactReadDto contactForUpdate = new ContactReadDto()
+            {
+                ContactId = 30,
+                FirstName = "Selby",
+                Surname = "Seroka",
+                BirthDate = new DateTime(1978, 7, 23),
+                UpdatedDate = new DateTime(2020, 11, 2),
+
+                ContactDetails = new List<ContactDetailReadDto>()
+                {
+                    new ContactDetailReadDto()
+                    {
+                        ContactDetailId = 40,
+                        ContactId = 30,
+                        Address = "302 Lebea",
+                        Cell = "0782347832",
+                        Description = "Description",
+                        Email = "selby@gmail.com",
+                        Telephone = "0156728912"
+                    }
+                }
+            };
+
+            var mapperMock = new Mock<IMapper>();
+            var serviceMocker = new Mock<IContactBookService>();
+
+            serviceMocker
+                .Setup(service => service.ContactExists(It.IsAny<int>()))
+                .ReturnsAsync(false);
+
+            var controller = new ContactsController(contactBookService: serviceMocker.Object, mapper: mapperMock.Object);
+            var actionResult = await controller.UpdateContact(30, contactForUpdate);
+
+            Assert.IsAssignableFrom<BadRequestResult>(actionResult.Result);
         }
     }
 }

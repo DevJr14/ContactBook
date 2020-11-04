@@ -136,6 +136,13 @@ namespace ContactBookWebApi.Controllers
                 {
                     return BadRequest();
                 }
+
+                bool contactExists = await _contactBookService.ContactExists(id);
+
+                if (!contactExists)
+                {
+                    return BadRequest();
+                }
                 contactReadDto.UpdatedDate = DateTime.UtcNow;
                 Contact contact = _mapper.Map<Contact>(contactReadDto);
 
